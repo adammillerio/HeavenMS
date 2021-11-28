@@ -1,13 +1,16 @@
 # Docker support, thanks to xinyifly
 
-FROM openjdk:8u171-jdk-alpine
-RUN apk -U add tini
-WORKDIR /mnt
+FROM azul/zulu-openjdk:8
+
+ENV TINI_VERSION v0.18.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+
+WORKDIR /app
 COPY ./ ./
-RUN sh ./posix-compile.sh
-ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.6.0/wait /wait
-RUN chmod +x /wait
+RUN bash ./posix-compile.sh
 
 EXPOSE 8484 7575 7576 7577
-ENTRYPOINT ["tini", "--"]
-CMD /wait && sh ./posix-launch.sh
+
+ENTRYPOINT ["/tini", "--"]
+CMD ["bash", "./posix-launch.sh"]
